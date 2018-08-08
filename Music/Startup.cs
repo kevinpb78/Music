@@ -33,7 +33,8 @@ namespace Music
             services.AddMvc();
 
             services.AddSingleton(Configuration);
-            services.AddTransient<IArtistService, ArtistService>();
+            services.AddScoped<IArtistService, ArtistService>();
+            services.AddTransient<IArtistRepository, ArtistRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

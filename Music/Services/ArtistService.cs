@@ -14,48 +14,71 @@ namespace Music.Services
 {
     public class ArtistService : IArtistService
     {
-        private MusicContext _context;
+        private readonly IArtistRepository _repository;
 
-        public ArtistService(MusicContext context)
+        public ArtistService(IArtistRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
         public async Task<RootDTO> GetAlbumsById(Guid id)
         {
+            var response = await GetMusicBrainzReleasesByArtistId(id);
+            var content = await ReadResponseContent(response);
+            var root = ConvertJsonStringToObject(content);
+            return root;
+        }
+
+        public async Task<RootDTO> GetFirst10AlbumsById(Guid id)
+        {
+            var albums = await GetAlbumsById(id);
+
+            if (albums.Releases.Count > 10)
+            {
+                albums.Releases = albums.Releases.OrderBy(r => r.Date).Take(10).ToList();
+            }
+
+            return albums;
+        }
+
+        private RootDTO ConvertJsonStringToObject(string content)
+        {
+            return JsonConvert.DeserializeObject<RootDTO>(content);
+        }
+
+        private async Task<string> ReadResponseContent(HttpResponseMessage response)
+        {
+            using (var content = response.Content)
+            {
+                return await content.ReadAsStringAsync();
+            }
+        }
+
+        public async Task<HttpResponseMessage> GetMusicBrainzReleasesByArtistId(Guid id)
+        {
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Accept.Clear();
-
+                client.BaseAddress = new Uri("http://musicbrainz.org/ws/2/");
                 client.DefaultRequestHeaders.Accept.Add(
                     new MediaTypeWithQualityHeaderValue("application/json"));
 
                 client.DefaultRequestHeaders.Add("User-Agent", "C# App");
 
-                string uri = $"?query=arid:{id}&fmt=json";
-                var url = new Uri($"http://musicbrainz.org/ws/2/release/" + uri);
-                var response = await client.GetAsync(url);
-                string json;
-                using (var content = response.Content)
-                {
-                    json = await content.ReadAsStringAsync();
-                }
+                var uri = $"release/?query=arid:{id}&fmt=json";
 
-                var root = JsonConvert.DeserializeObject<RootDTO>(json);
-
-                return root;
+                return await client.GetAsync(uri);
             }
         }
 
         public IEnumerable<Artist> GetAll()
         {
-            return _context.Artists;
+            return _repository.GetAll();
         }
 
         public Artist GetById(Guid id)
         {
-            return _context.Artists
-                .FirstOrDefault(artist => artist.Id == id);
+                return _repository.GetById(id);
         }
 
         public IEnumerable<ArtistModel> Search(string criteria)
@@ -81,5 +104,7 @@ namespace Music.Services
 
             return await PaginatedList<Artist>.CreateAsync(artists.AsQueryable(), pageId, pageSize);
         }
+
+        
     }
 }

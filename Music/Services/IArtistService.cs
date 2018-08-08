@@ -14,5 +14,6 @@ namespace Music.Services
         Artist GetById(Guid id);
         IEnumerable<ArtistModel> Search(string id);
         Task<RootDTO> GetAlbumsById(Guid id);
+        Task<RootDTO> GetFirst10AlbumsById(Guid id);
     }
 }
