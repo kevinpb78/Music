@@ -92,7 +92,7 @@ namespace Music.Controllers
                 return NotFound();
             }
 
-            var artists = _service.Search(criteria, pageid, pagesize);
+            var artists = _service.Search(criteria);
 
             if (artists == null)
             {
