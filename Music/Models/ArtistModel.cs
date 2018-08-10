@@ -9,6 +9,6 @@ namespace Music.Models
     {
         public string Name { get; set; }
         public string Country { get; set; }
-        public string[] Aliases { get; set; }
+        public List<string> ListAliases { get; set; }
     }
 }

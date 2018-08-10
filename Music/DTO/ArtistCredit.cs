@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Music.DTO
 {
-    public class ArtistCreditDTO
+    public class ArtistCredit
     {
         [JsonProperty(PropertyName = "artist")]
-        public OtherArtistDTO OtherArtist { get; set; }
+        public OtherArtist OtherArtist { get; set; }
     }
 }

@@ -17,12 +17,10 @@ namespace Music.Controllers
     public class ArtistController : Controller
     {
         private readonly IArtistService _service;
-        private readonly IMapper _mapper;
 
-        public ArtistController(IArtistService service, IMapper mapper)
+        public ArtistController(IArtistService service)
         {
             _service = service;
-            _mapper = mapper;
         }
 
         // GET: api/Artists
@@ -70,9 +68,9 @@ namespace Music.Controllers
 
         [HttpGet]
         [Route("search/{criteria}/{pageid:int}/{pagesize:int}")]
-        public IActionResult Search([FromRoute] string criteria, [FromRoute] int pageid, [FromRoute] int pagesize)
+        public IActionResult Search([FromRoute] string criteria, [FromRoute] int pageId, [FromRoute] int pageSize)
         {
-            var artists = _service.Search(criteria);
+            var artists = _service.Search(criteria, pageId, pageSize);
 
             if (artists == null)
             {
@@ -89,9 +87,7 @@ namespace Music.Controllers
         [Route("{id:Guid}/albums")]
         public async Task<IActionResult> Albums([FromRoute] Guid id)
         {
-            var root = await _service.GetFirst10AlbumsById(id);
-
-            var albums = _mapper.Map<AlbumListModel>(root);
+            var albums = await _service.GetFirst10AlbumsById(id);
 
             if (albums == null)
             {

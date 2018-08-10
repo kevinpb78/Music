@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace Music.DTO
 {
-    public class LabelInfoDTO
+    public class OtherArtist
     {
-        public LabelDTO Label { get; set; }
+        public string Id { get; set; }
+        public string Name { get; set; }
     }
 }

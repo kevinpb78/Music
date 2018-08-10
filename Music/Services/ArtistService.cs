@@ -1,4 +1,5 @@
-﻿using Music.Data;
+﻿using AutoMapper;
+using Music.Data;
 using Music.DTO;
 using Music.Models;
 using Music.Utilities;
@@ -15,21 +16,22 @@ namespace Music.Services
     public class ArtistService : IArtistService
     {
         private readonly IArtistRepository _repository;
+        private readonly IMapper _mapper;
 
-        public ArtistService(IArtistRepository repository)
+        public ArtistService(IArtistRepository repository, IMapper mapper)
         {
             _repository = repository;
+            _mapper = mapper;
         }
 
-        public async Task<RootDTO> GetAlbumsById(Guid id)
+        public async Task<Albums> GetAlbumsById(Guid id)
         {
             var response = await GetMusicBrainzReleasesByArtistId(id);
             var content = await ReadResponseContent(response);
-            var root = ConvertJsonStringToObject(content);
-            return root;
+            return ConvertJsonStringToObject(content);
         }
 
-        public async Task<RootDTO> GetFirst10AlbumsById(Guid id)
+        public async Task<AlbumListModel> GetFirst10AlbumsById(Guid id)
         {
             var albums = await GetAlbumsById(id);
 
@@ -38,12 +40,14 @@ namespace Music.Services
                 albums.Releases = albums.Releases.OrderBy(r => r.Date).Take(10).ToList();
             }
 
-            return albums;
+            var album = _mapper.Map<AlbumListModel>(albums);
+
+            return album;
         }
 
-        private RootDTO ConvertJsonStringToObject(string content)
+        private Albums ConvertJsonStringToObject(string content)
         {
-            return JsonConvert.DeserializeObject<RootDTO>(content);
+            return JsonConvert.DeserializeObject<Albums>(content);
         }
 
         private async Task<string> ReadResponseContent(HttpResponseMessage response)
@@ -54,7 +58,7 @@ namespace Music.Services
             }
         }
 
-        public async Task<HttpResponseMessage> GetMusicBrainzReleasesByArtistId(Guid id)
+        private async Task<HttpResponseMessage> GetMusicBrainzReleasesByArtistId(Guid id)
         {
             using (var client = new HttpClient())
             {
@@ -84,27 +88,24 @@ namespace Music.Services
         public IEnumerable<ArtistModel> Search(string criteria)
         {
             var artists = GetAll()
-                .Where(x => x.Name.ToLower().Contains(criteria.ToLower()));
+                .Where(x => x.Name.ToLower().Contains(criteria.ToLower()))
+                .OrderBy(x => x.Name);
 
-            var listResult = artists
-                .Select(x => new ArtistModel
-                {
-                    Name = x.Name,
-                    Country = x.Country,
-                    Aliases = x.Aliases.Split(',')
-                });
-
-            return listResult;
+            var searchResult = _mapper.Map<IEnumerable<ArtistModel>>(artists);
+            return searchResult;
         }
 
-        public async Task<IEnumerable<Artist>> SearchAsync(string criteria, int pageId, int pageSize)
+        public ArtistListModel Search(string criteria, int pageId, int pageSize)
         {
             var artists = GetAll()
-                .Where(x => x.Name.ToLower().Contains(criteria.ToLower()));
+                .Where(x => x.Name.ToLower().Contains(criteria.ToLower()))
+                .OrderBy(x => x.Name).AsQueryable();
 
-            return await PaginatedList<Artist>.CreateAsync(artists.AsQueryable(), pageId, pageSize);
+            var pagedArtist = new PagedList<Artist>(artists, pageId, pageSize);
+
+            var searchArtists = _mapper.Map<ArtistListModel>(pagedArtist);
+
+            return searchArtists;
         }
-
-        
     }
 }

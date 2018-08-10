@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Music.DTO
 {
-    public class ReleaseDTO
+    public class Release
     {
         [JsonProperty(PropertyName = "id")]
         public string ReleaseId { get; set; }
@@ -18,10 +18,10 @@ namespace Music.DTO
         public string Date { get; set; }
 
         [JsonProperty(PropertyName = "artist-credit")]
-        public List<ArtistCreditDTO> ArtistCredit { get; set; }
+        public List<ArtistCredit> ArtistCredit { get; set; }
 
         [JsonProperty(PropertyName = "label-info")]
-        public List<LabelInfoDTO> LabelInfo { get; set; }
+        public List<LabelInfo> LabelInfo { get; set; }
 
         [JsonProperty(PropertyName = "track-count")]
         public int NumberOfTracks { get; set; }
